@@ -1,8 +1,10 @@
 #include <iostream>
+#include <string>
+#include "AString.h"
+
 using namespace std;
 
 int main() {
-    cout << "Hello, C++" << endl;
-    return 0;
-}
-
+    //AString str("Hello, C++");
+    cout << "Hello" << endl;
+};
