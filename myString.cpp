@@ -1,9 +1,10 @@
 #include <cstring>
-#include "AString.h"
+#include "myString.h"
 
 using namespace std;
 
-AString::AString(const char* str) {
+// 普通构造函数
+myString::myString(const char* str) {
     if (str != nullptr) {
         int length = strlen(str);
         m_data = new char[length + 1];
@@ -14,7 +15,8 @@ AString::AString(const char* str) {
     }
 }
 
-AString::AString(const AString& other) {
+// 拷贝构造函数
+myString::myString(const myString& other) {
     if (other.m_data != nullptr) {
         m_data = new char[strlen(other.m_data) + 1];
         strcpy(m_data, other.m_data);
@@ -23,14 +25,16 @@ AString::AString(const AString& other) {
     }
 }
 
-AString::~AString() {
+// 析构函数
+myString::~myString() {
     if (m_data != nullptr) {
         delete[] m_data;
         m_data = nullptr;
     }
 }
 
-AString& AString::operator = (const AString& other) {
+// 赋值函数
+myString& myString::operator = (const myString& other) {
     if (this != &other) {
         delete[] m_data;
         if (other.m_data != nullptr) {
@@ -43,8 +47,9 @@ AString& AString::operator = (const AString& other) {
     return *this;
 }
 
-AString& AString::operator + (const AString& other) {
-    AString newStr;
+// 字符串连接
+myString& myString::operator + (const myString& other) {
+    myString newStr;
     if (other.m_data == nullptr) {
         newStr = *this;
     } else if (m_data == nullptr){
@@ -58,7 +63,8 @@ AString& AString::operator + (const AString& other) {
     return newStr;
 }
 
-bool AString::operator == (const AString& other) {
+// 判断相等
+bool myString::operator == (const myString& other) {
     if (strlen(m_data) != strlen(other.m_data)) {
         return false;
     } else {
@@ -66,10 +72,11 @@ bool AString::operator == (const AString& other) {
     }
 }
 
-int AString::getLength() {
+// 返回长度
+int myString::getLength() {
     return strlen(m_data);
 }
 
-char* AString::getChar() {
-    return m_data;
+string myString::getString() {
+    return string(m_data);
 }
