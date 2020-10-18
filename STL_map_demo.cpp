@@ -68,7 +68,7 @@ int main() {
     // 2. 使用自定义的比较函数，例如根据字符串长度
     map<string, int, CmpByKeyLength> mapScore2;
     mapScore2.insert(pair<string, int>("Lucia", 98));
-    mapScore2.insert(pair<string, int>("Historial", 100));
+    mapScore2.insert(map<string, int>::value_type ("Historial", 100));
     mapScore2["Lee"] = 90;
     return 0;
 };
