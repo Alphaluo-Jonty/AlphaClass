@@ -1,6 +1,3 @@
-#include <string>
-using namespace std;
-
 class myString {
 public:
     // default constructure function
@@ -17,8 +14,8 @@ public:
     bool operator == (const myString& other);
     // get length of myString
     int getLength();
-    // get string
-    string getString();
+    // get char
+    char* getChar();
 
 private:
     char *m_data;

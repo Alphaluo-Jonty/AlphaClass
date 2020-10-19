@@ -77,6 +77,6 @@ int myString::getLength() {
     return strlen(m_data);
 }
 
-string myString::getString() {
-    return string(m_data);
+char* myString::getChar() {
+    return m_data;
 }
