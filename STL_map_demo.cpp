@@ -4,6 +4,7 @@
 #include <iterator>
 using namespace std;
 
+// testing
 struct CmpByKeyLength {
     bool operator() (const string& k1, const string& k2) {
         return k1.length() < k2.length();
