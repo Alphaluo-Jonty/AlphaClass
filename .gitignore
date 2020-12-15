@@ -1,2 +1,4 @@
 .vscode
 linux_matrix_simd
+linux_matrix_simd_thread
+
