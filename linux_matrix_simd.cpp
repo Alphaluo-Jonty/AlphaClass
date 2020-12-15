@@ -1,19 +1,13 @@
-﻿#include <iostream>
+﻿#include <sys/time.h>
+#include <iostream>
 #include <vector>
 #include <iomanip>
-#include <Windows.h>
 #include <immintrin.h>
-#include <xmmintrin.h>
-#include <Eigen/dense>
+#include <Eigen/Dense>
 
 using namespace std;
 using namespace Eigen;
 
-static LARGE_INTEGER large_interger;
-static long long diff;
-static long long time_start;
-static long long time_end;
-static double time_freq;
 
 static int matrixN[4] = { 512, 1024, 2048, 4096 };
 static int blockM[5] = { 8, 16, 32, 64, 128 };
@@ -21,10 +15,16 @@ static vector<double> vecBaseTime;
 static vector<double> vecSIMDTime;
 static vector<double> vecEigenTime;
 
+static struct timeval startTime;
+static struct timeval endTime;
+static unsigned long diff;
+
 #define N 1024
 
 #define FLOAT_SIZE 8 // 一个AVX向量中包含8个单精度浮点数
 #define BYTE_SIZE 16 // 一个AVX向量中包含32个字节
+
+
 
 float rand_float(float s) {
     return 4 * s * (1 - s);
@@ -135,7 +135,7 @@ inline void matrix_mul_bk(int n, int block_size, float* A, float* B, float* C) {
 }
 
 // 矩阵相乘（分块）--AVX
-inline void matrix_mul_bk_avx(int n, int block_size, float* A, float* B, float* C) {
+void matrix_mul_bk_avx(int n, int block_size, float* A, float* B, float* C) {
 	for (int sj = 0; sj < n; sj += block_size) {
 		for (int si = 0; si < n; si += block_size) {
 			for (int sk = 0; sk < n; sk += block_size) {
@@ -197,19 +197,15 @@ void run_solution_simd(int n, int m)
 	// 随机生成矩阵A和B
 	matrix_gen(A, B, n, 0.8);
 
-	QueryPerformanceFrequency(&large_interger);
-	time_freq = large_interger.QuadPart;
-	QueryPerformanceCounter(&large_interger);
-	time_start = large_interger.QuadPart;
+	gettimeofday(&startTime, NULL);
+
 	// 矩阵相乘
 	matrix_mul_bk_avx(n, m, A, B, C);
 
-	QueryPerformanceCounter(&large_interger);
-	time_end = large_interger.QuadPart;
-	diff = 1000 * (time_end - time_start) / time_freq;
-	// 输出计时结果
-	cout << "N = " << n << ", M = " << m << ", time cost: " << diff << " ms" << endl;
-
+	gettimeofday(&endTime, NULL);
+	diff = 1000000 * (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
+	// 输出计时结果，以微秒为单位
+	cout << "N = " << n << ", M = " << m << ", time cost: " << diff << " us" << endl;
 	vecSIMDTime.push_back(diff);
 	// 释放
 	_mm_free(A);
@@ -227,21 +223,17 @@ void run_solution_base(int n, int m)
 	// 随机生成矩阵A和B
 	matrix_gen(A, B, n, 0.8);
 
-	QueryPerformanceFrequency(&large_interger);
-	time_freq = large_interger.QuadPart;
-	QueryPerformanceCounter(&large_interger);
-	time_start = large_interger.QuadPart;
+	gettimeofday(&startTime, NULL);
 	// 矩阵相乘
 	matrix_mul_bk(n, m, A, B, C);
 
-	QueryPerformanceCounter(&large_interger);
-	time_end = large_interger.QuadPart;
-	diff = 1000 * (time_end - time_start) / time_freq;
-	// 输出计时结果
-	cout << "N = " << n << ", M = " << m << ", time cost: " << diff << " ms" << endl;
+	gettimeofday(&endTime, NULL);
+	diff = 1000000 * (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
+	// 输出计时结果，以微秒为单位
+	cout << "N = " << n << ", M = " << m << ", time cost: " << diff << " us" << endl;
 
 	vecBaseTime.push_back(diff);
-	// 释放
+	// 释放内存
 	delete[] A;
 	delete[] B;
 	delete[] C;
@@ -263,38 +255,34 @@ void run_solution_eigen(int n)
 		}
 	}
 
-	QueryPerformanceFrequency(&large_interger);
-	time_freq = large_interger.QuadPart;
-	QueryPerformanceCounter(&large_interger);
-	time_start = large_interger.QuadPart;
+	gettimeofday(&startTime, NULL);
 	// 矩阵相乘
 	C = A * B;
 
-	QueryPerformanceCounter(&large_interger);
-	time_end = large_interger.QuadPart;
-	diff = 1000 * (time_end - time_start) / time_freq;
-	// 输出计时结果
-	cout << "N = " << n << ", time cost: " << diff << " ms" << endl;
+	gettimeofday(&endTime, NULL);
+	diff = 1000000 * (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
+	// 输出计时结果，以微秒为单位
+	cout << "N = " << n << ", time cost: " << diff << " us" << endl;
 
 	vecEigenTime.push_back(diff);
-
 }
 
 int main()
 {
-	int index = 0;
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 5; ++j) {
-			run_solution_base(matrixN[i], blockM[j]);
-			run_solution_simd(matrixN[i], blockM[j]);
-			cout << "SMID 加速比：" << setprecision(4) << vecBaseTime[index] / vecSIMDTime[index] << endl;
-			run_solution_eigen(matrixN[i]);
-			cout << "Eigen 加速比："<<  setprecision (4) << vecBaseTime[index] / vecEigenTime[index] << endl;
-			cout << " " << endl;
-			index++;
-		}
-	}
+	run_solution_simd(2048, 64);
+	cout << setprecision(5) << vecSIMDTime[0] / 1000 << endl;
+	// int index = 0;
+	// for (int i = 0; i < 4; ++i) {
+	// 	for (int j = 0; j < 5; ++j) {
+	// 		run_solution_base(matrixN[i], blockM[j]);
+	// 		run_solution_simd(matrixN[i], blockM[j]);
+	// 		cout << "SMID 加速比：" << setprecision(4) << vecBaseTime[index] / vecSIMDTime[index] << endl;
+	// 		run_solution_eigen(matrixN[i]);
+	// 		cout << "Eigen 加速比："<<  setprecision (4) << vecBaseTime[index] / vecEigenTime[index] << endl;
+	// 		cout << " " << endl;
+	// 		index++;
+	// 	}
+	// }
 
-    system("pause");
     return 0;
 }
