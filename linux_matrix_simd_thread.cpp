@@ -345,7 +345,6 @@ int main()
 			run_solution_simd_thread(matrixN[i], blockM[j], 4);	
 		}
 	}
-
 	int index = 0;
 	cout << "Thread num: " << 4 << endl;
 	for (int i = 0; i < 4; ++i) {
